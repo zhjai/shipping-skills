@@ -1,11 +1,11 @@
 ---
 name: shipping-skills
-description: Use when the user wants to create, build, author, package, publish, or ship an Agent Skill — writing a SKILL.md, structuring a skill repo, naming it, making it discoverable, publishing to GitHub with tags/releases, and getting it listed (skills.sh, directories). Covers the full pipeline from design to distribution, including trigger-description tuning, cross-file consistency, and pre-publish review. Do not use for writing application code, non-skill docs, or general Git questions unrelated to shipping a skill.
-version: 0.1.0
-author: zhjai
+description: Use when the user wants to package, publish, ship, or distribute an Agent Skill to GitHub — structuring the repo, getting the frontmatter spec-compliant, naming for discoverability, releasing with tags, pre-publish review, and getting it listed (skills.sh, directories). Complements an authoring/skill-creator skill (which writes the SKILL.md body); this takes a ready skill to a discoverable, published, spec-valid repo. Do not use for application code, non-skill docs, or general Git questions.
 license: MIT
 metadata:
-  tags: [agent-skill, claude-code-skill, skill-creation, skill-publishing, skill-authoring, github, distribution, discoverability]
+  version: "0.1.1"
+  author: zhjai
+  tags: "agent-skill, claude-code-skill, skill-creation, skill-publishing, skill-authoring, github, distribution, discoverability"
 ---
 
 # Shipping Skills
@@ -89,19 +89,22 @@ git tag -a v0.1.0 -m "v0.1.0 — initial preview" && git push origin v0.1.0
 gh release create v0.1.0 --title "v0.1.0 — <name>" --notes "<highlights>"
 ```
 
-**Then verify the install path actually works** (evidence over assumption):
+**Then verify — two distinct checks, don't conflate them:**
 
 ```bash
-npx skills add <owner>/<name> --list   # must print "Found N skills" and your skill name
+# 1. Frontmatter parses & the skill is discoverable (does NOT install):
+npx skills add <owner>/<name> --list   # must print "Found N skills" + your skill name
+# 2. Smoke-test the real install path end-to-end:
+npx skills add <owner>/<name> -g -a claude-code -y
 ```
 
-If `--list` can't parse it, your frontmatter is broken — fix before announcing.
+`--list` only confirms the frontmatter parses and the skill is listed — it is **not** proof the install works (and a failure isn't only a frontmatter problem). Run the actual `add` (#2) before announcing.
 
 ## 8. Distribution (how skills actually get found)
 
 - **skills.sh** — no manual submit. The directory/leaderboard is built from the `skills` CLI's anonymous install telemetry. You appear by getting people to run `npx skills add <owner>/<name>`. So: **promote the install command** (README, a launch post, socials).
 - **agentskills.io** — this is the **open-standard spec site, not a submission directory.** You don't "publish" to it; you just conform to the standard (valid SKILL.md). Engage via its GitHub/Discord if you want.
-- **Marketplaces (e.g. mcpmarket)** — submission process varies and is **not verified here**; some directories auto-index public repos by topic, others require a manual submit. Check each site's own process before assuming (don't claim a path you haven't confirmed — see Mistake #6).
+- **Marketplaces (e.g. mcpmarket)** — submission varies by site: some auto-index public repos by topic, some have a submit page (mcpmarket has one). Check each site's own process; don't assume one path fits all.
 - **Highest-leverage single action:** a one-line `npx skills add` command + a short launch post telling the result-first story. That feeds the leaderboard and lets auto-indexers find you.
 
 ## 9. Review before publishing
@@ -115,9 +118,9 @@ Run a **heterogeneous review** (e.g. a second model / agent) over the skill befo
 3. **Unchecked name collision** — buried under same-name giants in search.
 4. **Name implies the wrong mechanism** — e.g. a single-agent tool in an "arena" repo misleads users about how it works.
 5. **Cross-file enum drift** — multiple spec files with no normative source; integrators break.
-6. **Announcing without verifying `--list`** — a broken frontmatter ships silently.
+6. **Announcing without a real install smoke test** — `--list` only checks frontmatter parsing, not that the install works; run `npx skills add ... -g -a <agent> -y` first.
 7. **Treating directories as manual submit forms** — skills.sh is automatic via install telemetry; promote the install command instead.
-8. **No release/tag** — a 0-release repo reads as abandoned; tagged releases are a trust signal.
+8. **No release/tag** — not required, but a 0-release repo reads as abandoned; a tagged release is a cheap trust signal (nice-to-have, not a hard rule).
 
 ## Verification Checklist
 
@@ -126,7 +129,7 @@ Run a **heterogeneous review** (e.g. a second model / agent) over the skill befo
 - [ ] One normative source declared for any cross-file enums/contracts; grep-confirmed consistent.
 - [ ] Repo has README (result-first), LICENSE, CHANGELOG, topics, description.
 - [ ] Name checked for collisions; doesn't imply the wrong mechanism.
-- [ ] `npx skills add <owner>/<name> --list` prints the skill (frontmatter parses).
+- [ ] `--list` prints the skill (frontmatter parses) AND a real `npx skills add ... -g -a <agent> -y` smoke test succeeds.
 - [ ] Tag + GitHub release published.
 - [ ] Heterogeneous review done; README commands actually run.
 
